@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Results | Kan Bkam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+        }
+        .best-price {
+            position: relative;
+            border: 2px solid #10B981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            transform: scale(1.02);
+            z-index: 1;
+        }
+        .best-price::after {
+            content: "BEST DEAL";
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: #10B981;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .price-card {
+            transition: all 0.3s ease;
+        }
+        .price-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="sticky top-0 z-50">
+        <div class="bg-gray-900 text-white py-2 px-4">
+            <div class="max-w-7xl mx-auto flex items-center">
+                <div class="flex items-center flex-shrink-0 mr-6">
+                    <span class="text-2xl font-bold text-yellow-400">Kan Bkam</span>
+                </div>
+                <div class="flex-grow mx-4">
+                    <form id="headerSearchForm" class="flex" action="/results.html" method="get">
+                        <select name="category" class="border-r-0 rounded-l-md px-2 bg-gray-100">
+                            <option value="all">All</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="home">Home</option>
+                        </select>
+                        <input type="text" name="search" class="flex-grow px-4 py-2 border-t border-b focus:outline-none" required>
+                        <button type="submit" class="bg-yellow-400 px-4 py-2 border border-yellow-300 rounded-r-md">
+                            <i class="fas fa-search text-gray-800"></i>
+                        </button>
+                    </form>
+                </div>
+                <nav class="flex items-center space-x-6 text-sm">
+                    <a href="#" class="text-white hover:underline">
+                        <div class="text-xs">Hello</div>
+                        <div class="font-bold">Account</div>
+                    </a>
+                    <a href="#" class="text-white hover:underline">
+                        <div class="text-xs">Returns</div>
+                        <div class="font-bold">& Orders</div>
+                    </a>
+                    <a href="#" class="text-white hover:underline flex items-center">
+                        <i class="fas fa-shopping-cart text-2xl mr-1"></i>
+                        <span class="font-bold">Cart</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        <div class="bg-gray-800 text-white py-2 px-4 text-sm">
+            <div class="max-w-7xl mx-auto flex items-center space-x-4">
+                <a href="#" class="flex items-center hover:underline">
+                    <i class="fas fa-bars mr-1"></i>
+                    All
+                </a>
+                <a href="#" class="hover:underline">Today's Deals</a>
+                <a href="#" class="hover:underline">Customer Service</a>
+                <a href="#" class="hover:underline">Gift Cards</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-card p-6 mb-8">
+                <h2 id="productTitle" class="text-2xl font-bold text-white"></h2>
+                <p class="text-white/80 mt-2">Showing price comparisons for your search</p>
+            </div>
+
+            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Product cards will be inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const searchQuery = params.get('search');
+            const category = params.get('category');
+            
+            if (!searchQuery) {
+                window.location.href = '/';
+                return;
+            }
+
+            document.getElementById('productTitle').textContent = `Results for: ${searchQuery}`;
+
+            try {
+                // First try to get results from localStorage
+                const storedResults = localStorage.getItem('searchResults');
+                if (storedResults) {
+                    displayResults(JSON.parse(storedResults));
+                    return;
+                }
+
+                // Fallback to fetching from server
+                const response = await fetch('/data/products.json');
+                const products = await response.json();
+                
+                // Filter products that match search query
+                let results = products.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                
+                // Filter by category if specified
+                if (category && category !== 'all') {
+                    results = results.filter(p => {
+                        // Add category field to products in products.json
+                        // For now we'll assume electronics have 'Apple' or 'Sony' in name
+                        if (category === 'electronics') {
+                            return p.name.includes('Apple') || p.name.includes('Sony');
+                        } else if (category === 'home') {
+                            return p.name.includes('Instant Pot');
+                        }
+                        return true;
+                    });
+                }
+
+                if (results.length === 0) {
+                    throw new Error('No matching products found');
+                }
+
+                displayResults(results);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="col-span-3 text-center py-8">
+                        <p class="text-red-500 mb-4">${err.message || 'Error loading search results'}</p>
+                        <a href="/" class="text-blue-600 hover:underline">Back to search</a>
+                    </div>
+                `;
+            }
+        });
+
+        function displayResults(products) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+
+            products.forEach(product => {
+                const prices = Object.entries(product.prices);
+                const links = product.links || {
+                    'Amazon': 'https://www.amazon.com',
+                    'eBay': 'https://www.ebay.com',
+                    'Walmart': 'https://www.walmart.com'
+                };
+                const cheapest = Math.min(...Object.values(product.prices));
+
+                prices.forEach(([store, price]) => {
+                    const isCheapest = price === cheapest;
+                    
+                    const card = document.createElement('div');
+                    card.className = `bg-white p-4 ${isCheapest ? 'border-2 border-orange-500' : ''}`;
+                    card.innerHTML = `
+                        <div class="mb-4">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-contain mx-auto">
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-800 mb-1">${product.name}</h3>
+                        <div class="flex items-center mb-1">
+                            <div class="text-yellow-400 mr-1">
+                                ${'<i class="fas fa-star"></i>'.repeat(5)}
+                            </div>
+                            <span class="text-xs text-gray-500">(${Math.floor(Math.random() * 1000)})</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-red-700 font-bold text-lg">$${price.toFixed(2)}</span>
+                            ${isCheapest ? '<span class="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Best Price</span>' : ''}
+                        </div>
+                        <div class="text-xs text-green-700 mb-2">
+                            FREE delivery <span class="font-bold">Tomorrow</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mb-3">
+                            Sold by ${store} • ${Math.random() > 0.5 ? 'In Stock' : 'Only 2 left'}
+                        </div>
+                        <a href="${links[store]}" target="_blank" 
+                           class="block w-full bg-yellow-400 hover:bg-yellow-500 text-center py-1 px-3 rounded text-sm font-medium border border-yellow-500">
+                            Add to Cart
+                        </a>
+                        <div class="text-xs text-blue-500 mt-2">
+                            <a href="#" class="hover:underline">Add to List</a>
+                            <span class="mx-1">|</span>
+                            <a href="#" class="hover:underline">Add to Compare</a>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
