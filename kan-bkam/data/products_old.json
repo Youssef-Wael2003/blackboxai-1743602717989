@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Dasani Water Bottle",
+    "image": "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+    "prices": {
+      "Amazon": 2.99,
+      "Tesco": 3.49,
+      "Target": 3.29
+    },
+    "links": {
+      "Amazon": "https://www.amazon.com",
+      "Tesco": "https://www.tesco.com",
+      "Target": "https://www.target.com"
+    }
+  },
+  {
+    "name": "iPhone 13",
+    "image": "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+    "prices": {
+      "Amazon": 799.99,
+      "Tesco": 849.99,
+      "Target": 819.99
+    },
+    "links": {
+      "Amazon": "https://www.amazon.com",
+      "Tesco": "https://www.tesco.com",
+      "Target": "https://www.target.com"
+    }
+  },
+  {
+    "name": "Nike Air Max",
+    "image": "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+    "prices": {
+      "Amazon": 129.99,
+      "Tesco": 139.99,
+      "Target": 134.99
+    },
+    "links": {
+      "Amazon": "https://www.amazon.com",
+      "Tesco": "https://www.tesco.com",
+      "Target": "https://www.target.com"
+    }
+  }
+]
